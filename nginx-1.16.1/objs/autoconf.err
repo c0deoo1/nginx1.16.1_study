@@ -106,7 +106,7 @@ checking for atomic(3)
 objs/autotest.c:8:24: warning: 'OSAtomicCompareAndSwap32Barrier' is deprecated: first deprecated in macOS 10.12 - Use atomic_compare_exchange_strong() from <stdatomic.h> instead [-Wdeprecated-declarations]
                   if (!OSAtomicCompareAndSwap32Barrier(0, 1, &lock)) return 1;
                        ^
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/libkern/OSAtomicDeprecated.h:518:9: note: 'OSAtomicCompareAndSwap32Barrier' has been explicitly marked deprecated here
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/libkern/OSAtomicDeprecated.h:519:9: note: 'OSAtomicCompareAndSwap32Barrier' has been explicitly marked deprecated here
 bool    OSAtomicCompareAndSwap32Barrier( int32_t __oldValue, int32_t __newValue, volatile int32_t *__theValue );
         ^
 1 warning generated.
@@ -172,13 +172,13 @@ cc -pipe -D__APPLE_USE_RFC_3542 -o objs/autotest objs/autotest.c
 ----------------------------------------
 checking for posix_fadvise()
 
-objs/autotest.c:7:5: warning: implicit declaration of function 'posix_fadvise' is invalid in C99 [-Wimplicit-function-declaration]
+objs/autotest.c:7:5: error: implicit declaration of function 'posix_fadvise' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
     posix_fadvise(0, 0, 0, POSIX_FADV_SEQUENTIAL);;
     ^
 objs/autotest.c:7:28: error: use of undeclared identifier 'POSIX_FADV_SEQUENTIAL'
     posix_fadvise(0, 0, 0, POSIX_FADV_SEQUENTIAL);;
                            ^
-1 warning and 1 error generated.
+2 errors generated.
 ----------
 
 #include <sys/types.h>
@@ -223,13 +223,13 @@ checking for F_NOCACHE
 ----------------------------------------
 checking for directio()
 
-objs/autotest.c:8:5: warning: implicit declaration of function 'directio' is invalid in C99 [-Wimplicit-function-declaration]
+objs/autotest.c:8:5: error: implicit declaration of function 'directio' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
     directio(0, DIRECTIO_ON);;
     ^
 objs/autotest.c:8:17: error: use of undeclared identifier 'DIRECTIO_ON'
     directio(0, DIRECTIO_ON);;
                 ^
-1 warning and 1 error generated.
+2 errors generated.
 ----------
 
 #include <sys/types.h>
@@ -268,7 +268,7 @@ checking for sched_setaffinity()
 objs/autotest.c:7:5: error: use of undeclared identifier 'cpu_set_t'
     cpu_set_t mask;
     ^
-objs/autotest.c:8:19: warning: implicit declaration of function 'CPU_ZERO' is invalid in C99 [-Wimplicit-function-declaration]
+objs/autotest.c:8:19: error: implicit declaration of function 'CPU_ZERO' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
                   CPU_ZERO(&mask);
                   ^
 objs/autotest.c:8:29: error: use of undeclared identifier 'mask'; did you mean 'main'?
@@ -278,7 +278,7 @@ objs/autotest.c:8:29: error: use of undeclared identifier 'mask'; did you mean '
 objs/autotest.c:6:5: note: 'main' declared here
 int main(void) {
     ^
-objs/autotest.c:9:19: warning: implicit declaration of function 'sched_setaffinity' is invalid in C99 [-Wimplicit-function-declaration]
+objs/autotest.c:9:19: error: implicit declaration of function 'sched_setaffinity' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
                   sched_setaffinity(0, sizeof(cpu_set_t), &mask);
                   ^
 objs/autotest.c:9:47: error: use of undeclared identifier 'cpu_set_t'
@@ -291,7 +291,7 @@ objs/autotest.c:9:60: error: use of undeclared identifier 'mask'; did you mean '
 objs/autotest.c:6:5: note: 'main' declared here
 int main(void) {
     ^
-2 warnings and 4 errors generated.
+6 errors generated.
 ----------
 
 #include <sys/types.h>
@@ -582,13 +582,17 @@ cc -pipe -D__APPLE_USE_RFC_3542 -o objs/autotest objs/autotest.c
 ----------------------------------------
 checking for accept4()
 
-objs/autotest.c:7:5: warning: implicit declaration of function 'accept4' is invalid in C99 [-Wimplicit-function-declaration]
+objs/autotest.c:7:5: error: implicit declaration of function 'accept4' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
     accept4(0, NULL, NULL, SOCK_NONBLOCK);
     ^
+objs/autotest.c:7:5: note: did you mean 'accept'?
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/socket.h:700:9: note: 'accept' declared here
+int     accept(int, struct sockaddr * __restrict, socklen_t * __restrict)
+        ^
 objs/autotest.c:7:28: error: use of undeclared identifier 'SOCK_NONBLOCK'
     accept4(0, NULL, NULL, SOCK_NONBLOCK);
                            ^
-1 warning and 1 error generated.
+2 errors generated.
 ----------
 
 #include <sys/types.h>
@@ -723,15 +727,10 @@ checking for AF_INET6
 ----------------------------------------
 checking for setproctitle()
 
-objs/autotest.c:7:5: warning: implicit declaration of function 'setproctitle' is invalid in C99 [-Wimplicit-function-declaration]
+objs/autotest.c:7:5: error: implicit declaration of function 'setproctitle' is invalid in C99 [-Werror,-Wimplicit-function-declaration]
     setproctitle("test");;
     ^
-1 warning generated.
-Undefined symbols for architecture x86_64:
-  "_setproctitle", referenced from:
-      _main in autotest-4d1a30.o
-ld: symbol(s) not found for architecture x86_64
-clang: error: linker command failed with exit code 1 (use -v to see invocation)
+1 error generated.
 ----------
 
 #include <sys/types.h>
@@ -758,33 +757,6 @@ checking for pwrite()
 ----------------------------------------
 checking for pwritev()
 
-objs/autotest.c:10:23: warning: implicit declaration of function 'pwritev' is invalid in C99 [-Wimplicit-function-declaration]
-                  n = pwritev(1, vec, 1, 0);
-                      ^
-1 warning generated.
-Undefined symbols for architecture x86_64:
-  "_pwritev", referenced from:
-      _main in autotest-9ba5fe.o
-ld: symbol(s) not found for architecture x86_64
-clang: error: linker command failed with exit code 1 (use -v to see invocation)
-----------
-
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/uio.h>
-
-int main(void) {
-    char buf[1]; struct iovec vec[1]; ssize_t n;
-                  vec[0].iov_base = buf;
-                  vec[0].iov_len = 1;
-                  n = pwritev(1, vec, 1, 0);
-                  if (n == -1) return 1;
-    return 0;
-}
-
-----------
-cc -pipe -D__APPLE_USE_RFC_3542 -o objs/autotest objs/autotest.c
-----------
 
 ----------------------------------------
 checking for sys_nerr
@@ -847,7 +819,7 @@ objs/autotest.c:8:23: warning: 'sem_init' is deprecated [-Wdeprecated-declaratio
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/semaphore.h:55:42: note: 'sem_init' has been explicitly marked deprecated here
 int sem_init(sem_t *, int, unsigned int) __deprecated;
                                          ^
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:187:40: note: expanded from macro '__deprecated'
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:196:40: note: expanded from macro '__deprecated'
 #define __deprecated    __attribute__((__deprecated__))
                                        ^
 objs/autotest.c:9:19: warning: 'sem_destroy' is deprecated [-Wdeprecated-declarations]
@@ -856,7 +828,7 @@ objs/autotest.c:9:19: warning: 'sem_destroy' is deprecated [-Wdeprecated-declara
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/semaphore.h:53:26: note: 'sem_destroy' has been explicitly marked deprecated here
 int sem_destroy(sem_t *) __deprecated;
                          ^
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:187:40: note: expanded from macro '__deprecated'
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:196:40: note: expanded from macro '__deprecated'
 #define __deprecated    __attribute__((__deprecated__))
                                        ^
 2 warnings generated.
@@ -870,7 +842,7 @@ objs/autotest.c:8:23: warning: 'sem_init' is deprecated [-Wdeprecated-declaratio
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/semaphore.h:55:42: note: 'sem_init' has been explicitly marked deprecated here
 int sem_init(sem_t *, int, unsigned int) __deprecated;
                                          ^
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:187:40: note: expanded from macro '__deprecated'
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:196:40: note: expanded from macro '__deprecated'
 #define __deprecated    __attribute__((__deprecated__))
                                        ^
 objs/autotest.c:9:19: warning: 'sem_destroy' is deprecated [-Wdeprecated-declarations]
@@ -879,7 +851,7 @@ objs/autotest.c:9:19: warning: 'sem_destroy' is deprecated [-Wdeprecated-declara
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/semaphore.h:53:26: note: 'sem_destroy' has been explicitly marked deprecated here
 int sem_destroy(sem_t *) __deprecated;
                          ^
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:187:40: note: expanded from macro '__deprecated'
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:196:40: note: expanded from macro '__deprecated'
 #define __deprecated    __attribute__((__deprecated__))
                                        ^
 2 warnings generated.
@@ -893,7 +865,7 @@ objs/autotest.c:8:23: warning: 'sem_init' is deprecated [-Wdeprecated-declaratio
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/semaphore.h:55:42: note: 'sem_init' has been explicitly marked deprecated here
 int sem_init(sem_t *, int, unsigned int) __deprecated;
                                          ^
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:187:40: note: expanded from macro '__deprecated'
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:196:40: note: expanded from macro '__deprecated'
 #define __deprecated    __attribute__((__deprecated__))
                                        ^
 objs/autotest.c:9:19: warning: 'sem_destroy' is deprecated [-Wdeprecated-declarations]
@@ -902,7 +874,7 @@ objs/autotest.c:9:19: warning: 'sem_destroy' is deprecated [-Wdeprecated-declara
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/semaphore.h:53:26: note: 'sem_destroy' has been explicitly marked deprecated here
 int sem_destroy(sem_t *) __deprecated;
                          ^
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:187:40: note: expanded from macro '__deprecated'
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:196:40: note: expanded from macro '__deprecated'
 #define __deprecated    __attribute__((__deprecated__))
                                        ^
 2 warnings generated.
@@ -985,10 +957,6 @@ checking for PCRE library
 
 ----------------------------------------
 checking for PCRE JIT support
-
-
-----------------------------------------
-checking for OpenSSL library
 
 
 ----------------------------------------

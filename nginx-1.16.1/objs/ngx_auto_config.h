@@ -1,7 +1,7 @@
-#define NGX_CONFIGURE " --prefix=/home/wanjieliu/nginx --with-http_ssl_module --with-http_realip_module --with-http_addition_module --with-http_sub_module --with-http_gunzip_module --with-http_gzip_static_module --with-http_auth_request_module"
+#define NGX_CONFIGURE ""
 
 #ifndef NGX_COMPILER
-#define NGX_COMPILER  "clang 11.0.0 (clang-1100.0.33.16)"
+#define NGX_COMPILER  "clang 12.0.0 (clang-1200.0.32.27)"
 #endif
 
 
@@ -183,6 +183,11 @@
 #endif
 
 
+#ifndef NGX_HAVE_PWRITEV
+#define NGX_HAVE_PWRITEV  1
+#endif
+
+
 #ifndef NGX_SYS_NERR
 #define NGX_SYS_NERR  107
 #endif
@@ -268,38 +273,13 @@
 #endif
 
 
-#ifndef NGX_HTTP_GZIP
-#define NGX_HTTP_GZIP  1
-#endif
-
-
-#ifndef NGX_HTTP_GZIP
-#define NGX_HTTP_GZIP  1
-#endif
-
-
 #ifndef NGX_CRYPT
 #define NGX_CRYPT  1
 #endif
 
 
-#ifndef NGX_HTTP_REALIP
-#define NGX_HTTP_REALIP  1
-#endif
-
-
 #ifndef NGX_HTTP_X_FORWARDED_FOR
 #define NGX_HTTP_X_FORWARDED_FOR  1
-#endif
-
-
-#ifndef NGX_HTTP_X_FORWARDED_FOR
-#define NGX_HTTP_X_FORWARDED_FOR  1
-#endif
-
-
-#ifndef NGX_HTTP_SSL
-#define NGX_HTTP_SSL  1
 #endif
 
 
@@ -323,23 +303,13 @@
 #endif
 
 
-#ifndef NGX_OPENSSL
-#define NGX_OPENSSL  1
-#endif
-
-
-#ifndef NGX_SSL
-#define NGX_SSL  1
-#endif
-
-
 #ifndef NGX_ZLIB
 #define NGX_ZLIB  1
 #endif
 
 
 #ifndef NGX_PREFIX
-#define NGX_PREFIX  "/home/wanjieliu/nginx/"
+#define NGX_PREFIX  "/usr/local/nginx/"
 #endif
 
 
