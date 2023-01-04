@@ -12,6 +12,7 @@ checking for system byte ordering
 
 END
 
+# '>'会清空$NGX_AUTOTEST.c文件
 
 cat << END > $NGX_AUTOTEST.c
 
@@ -32,6 +33,7 @@ ngx_test="$CC $CC_TEST_FLAGS $CC_AUX_FLAGS \
 eval "$ngx_test >> $NGX_AUTOCONF_ERR 2>&1"
 
 if [ -x $NGX_AUTOTEST ]; then
+# 通过返回值来确认字节序
     if $NGX_AUTOTEST >/dev/null 2>&1; then
         echo " little endian"
         have=NGX_HAVE_LITTLE_ENDIAN . auto/have

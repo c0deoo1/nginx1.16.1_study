@@ -4,11 +4,14 @@
 
 
 NGX_MAKEFILE=$NGX_OBJS/Makefile
+# 生成模块的源文件路径
 NGX_MODULES_C=$NGX_OBJS/ngx_modules.c
 
+# 生成默认的头文件名，默认为objs/ngx_auto_headers.h和objs/ngx_auto_config.h
 NGX_AUTO_HEADERS_H=$NGX_OBJS/ngx_auto_headers.h
 NGX_AUTO_CONFIG_H=$NGX_OBJS/ngx_auto_config.h
 
+# 生成测试文件和错误文件名，这两个文件在nginx的配置和编译过程中使用
 NGX_AUTOTEST=$NGX_OBJS/autotest
 NGX_AUTOCONF_ERR=$NGX_OBJS/autoconf.err
 
@@ -20,7 +23,8 @@ MAKEFILE=$NGX_OBJS/Makefile
 NGX_PCH=
 NGX_USE_PCH=
 
-
+# 测试当前的操作系统的echo命令是否支持-n,"\c"这两个选项。
+# 两个选项都是和换行有关的，只是为了控制echo的显示样式
 # check the echo's "-n" option and "\c" capability
 
 if echo "test\c" | grep c >/dev/null; then
@@ -39,7 +43,8 @@ else
     ngx_c='\c'
 fi
 
-
+# 生成总的Makefile,这里生成的Makefile是和configure同级别的，用于控制nginx的整体编译。
+# objs目录下面也有一个Makefile，这个Makefile是后来生成的
 # create Makefile
 
 cat << END > Makefile

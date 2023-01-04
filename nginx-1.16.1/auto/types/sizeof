@@ -2,6 +2,7 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
+# 检查整形类字段的sizeof，用于设置最大值
 
 echo $ngx_n "checking for $ngx_type size ...$ngx_c"
 

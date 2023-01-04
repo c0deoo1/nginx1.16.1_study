@@ -2,7 +2,7 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
-
+# 定义一些编译的文件依赖
 CORE_MODULES="ngx_core_module ngx_errlog_module ngx_conf_module"
 
 CORE_INCS="src/core"

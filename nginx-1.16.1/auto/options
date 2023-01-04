@@ -171,10 +171,11 @@ NGX_POST_CONF_MSG=
 
 opt=
 
+# 遍历各个参数
 for option
 do
     opt="$opt `echo $option | sed -e \"s/\(--[^=]*=\)\(.* .*\)/\1'\2'/\"`"
-
+# 解析出value的值
     case "$option" in
         -*=*) value=`echo "$option" | sed -e 's/[-_a-zA-Z0-9]*=//'` ;;
            *) value="" ;;
@@ -403,7 +404,7 @@ $0: warning: the \"--with-sha1-asm\" option is deprecated"
     esac
 done
 
-
+# NGX_CONFIGURE 保留一份参数的定义
 NGX_CONFIGURE="$opt"
 
 
@@ -594,7 +595,7 @@ if [ ".$NGX_PLATFORM" = ".win32" ]; then
     NGX_WINE=$WINE
 fi
 
-
+# 设置一些默认值
 NGX_SBIN_PATH=${NGX_SBIN_PATH:-sbin/nginx}
 NGX_MODULES_PATH=${NGX_MODULES_PATH:-modules}
 NGX_CONF_PATH=${NGX_CONF_PATH:-conf/nginx.conf}

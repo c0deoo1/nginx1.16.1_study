@@ -7,10 +7,16 @@
 LC_ALL=C
 export LC_ALL
 
+# 通过运行auto/options脚本，所有的配置项已经被正确解析并加载到相应的配置变量中了
 . auto/options
+
+# 做一些初始化工作，包括生成文件的路径信息等
 . auto/init
+
+# 为后面的Makefile文件生成各种依赖。比如编译Core模块用到的依赖，编译pcre模块用到的依赖等等。
 . auto/sources
 
+# 创建目录
 test -d $NGX_OBJS || mkdir -p $NGX_OBJS
 
 echo > $NGX_AUTO_HEADERS_H
@@ -20,6 +26,8 @@ echo "#define NGX_CONFIGURE \"$NGX_CONFIGURE\"" > $NGX_AUTO_CONFIG_H
 
 
 if [ $NGX_DEBUG = YES ]; then
+# auto/have用于定义宏
+# #define NGX_DEBUG 1
     have=NGX_DEBUG . auto/have
 fi
 

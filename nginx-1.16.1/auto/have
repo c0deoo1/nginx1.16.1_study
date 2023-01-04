@@ -1,7 +1,7 @@
 
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
-
+# 宏定义 value统一为1
 
 cat << END >> $NGX_AUTO_CONFIG_H
 

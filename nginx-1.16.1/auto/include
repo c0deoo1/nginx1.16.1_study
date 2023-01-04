@@ -12,6 +12,8 @@ checking for $ngx_include
 
 END
 
+# 判断头文件是否存在
+# 通过实际编译来判断
 
 ngx_found=no
 
@@ -36,7 +38,7 @@ if [ -x $NGX_AUTOTEST ]; then
     ngx_found=yes
 
     echo " found"
-
+# tr可以做字符转换
     ngx_name=`echo $ngx_include \
               | tr abcdefghijklmnopqrstuvwxyz/. ABCDEFGHIJKLMNOPQRSTUVWXYZ__`
 

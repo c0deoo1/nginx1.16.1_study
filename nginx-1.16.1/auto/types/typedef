@@ -1,7 +1,13 @@
 
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
+# 这里要分三种种情况，如下：
+# 场景一：ngx_type和ngx_types都不存在，最终报错
+# 场景二：ngx_type存在。如果是这种情况的话，ngx_found的值是yes，这样的话，auto/types/typedef脚本就直接结束了。
+# 场景三：ngx_type类型不存在，但是ngx_types存在。这个时候ngx_found的值是ngx_types的值。所以会执行下面的脚本：
+# typedef $ngx_types  $ngx_type;
 
+# 也即是把ngx_type作为$ngx_types的别名，这样程序中就可以一直使用ngx_type这种类型。
 
 echo $ngx_n "checking for $ngx_type ...$ngx_c"
 

@@ -2,6 +2,25 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
+# 该脚本对于不同的宿主系统，可以测试当前的宿主系统是否支持某个特性。
+# nginx会根据测试结果选用不同的实现方式。比如auto/feature可以测试当前系统是否支持epoll
+# 如果支持，nginx就使用这种高效率的io多路复用机制。
+# 如果不支持，那么就可能选用select或者poll机制等。总之，无论如何，总会让你的机器能够成功的运行nginx.
+
+# ngx_feature: 要测试的特性名称，该参数主要用于向终端和NGX_AUTOCONF_ERR文件中输出日志，便于后面的分析。
+# ngx_feature_name: define的变量名
+# ngx_feature_run: 表示对编译之后文件的处理方式
+# ngx_feature_incs:包含c源文件所需的头文件。下面的ngx_feature_path参数是这些头文件所在的目录
+# ngx_feature_path:包含了编译程序时设置的头文件目录
+# ngx_feature_libs:编译源文件时依赖的库文件
+# ngx_feature_test:测试当前特性时要执行的代码
+
+# 输出参数
+# ngx_found: 表示是否拥有该特性，如果为yes表示有该特性。若为no，表示没有该特性。
+
+# 功能
+# 测试是否支持某个特性。
+
 
 echo $ngx_n "checking for $ngx_feature ...$ngx_c"
 

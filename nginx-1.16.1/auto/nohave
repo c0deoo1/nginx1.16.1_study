@@ -2,7 +2,7 @@
 # Copyright (C) Igor Sysoev
 # Copyright (C) Nginx, Inc.
 
-
+# 宏定义 value统一为0
 cat << END >> $NGX_AUTO_CONFIG_H
 
 #ifndef $have
