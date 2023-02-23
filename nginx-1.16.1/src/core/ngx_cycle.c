@@ -34,7 +34,9 @@ ngx_uint_t             ngx_quiet_mode;
 static ngx_connection_t  dumb;
 /* STUB */
 
-
+// 一个cycle可以理解对应一个配置文件的周期。
+// 在ngx_init_cycle里会做一些listner的bind和unbind操作
+// 即旧的listener和新的listener的merge，当然还有其他配置的merge。
 ngx_cycle_t *
 ngx_init_cycle(ngx_cycle_t *old_cycle)
 {
@@ -185,7 +187,8 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
     ngx_queue_init(&cycle->reusable_connections_queue);
 
-
+    // conf是一个分层的配置，第一层是Core Module的配置
+    // 这里直接初始化ngx_max_module个元素，每一个元素对应一个module的配置
     cycle->conf_ctx = ngx_pcalloc(pool, ngx_max_module * sizeof(void *));
     if (cycle->conf_ctx == NULL) {
         ngx_destroy_pool(pool);
@@ -218,7 +221,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         return NULL;
     }
 
-
+    // 创建模块配置的存储空间
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -282,7 +285,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         ngx_log_stderr(0, "the configuration file %s syntax is ok",
                        cycle->conf_file.data);
     }
-
+    // 根据模块的配置初始化模块
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -1065,7 +1068,7 @@ ngx_delete_pidfile(ngx_cycle_t *cycle)
     }
 }
 
-
+// 从配置文件中解析PID发送信号
 ngx_int_t
 ngx_signal_process(ngx_cycle_t *cycle, char *sig)
 {
@@ -1076,7 +1079,7 @@ ngx_signal_process(ngx_cycle_t *cycle, char *sig)
     u_char            buf[NGX_INT64_LEN + 2];
 
     ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "signal process started");
-
+    // 配置解析
     ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
 
     ngx_memzero(&file, sizeof(ngx_file_t));

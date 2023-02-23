@@ -10,6 +10,7 @@
 
 
 /*
+ * 拷贝error实现error msg的高效访问
  * The strerror() messages are copied because:
  *
  * 1) strerror() and strerror_r() functions are not Async-Signal-Safe,

@@ -15,10 +15,10 @@
 
 
 typedef struct {
-    ngx_uint_t  command;
-    ngx_pid_t   pid;
-    ngx_int_t   slot;
-    ngx_fd_t    fd;
+    ngx_uint_t  command;  // 命令字
+    ngx_pid_t   pid;      // worker的pid
+    ngx_int_t   slot;     // worker对应ngx_processes中的index
+    ngx_fd_t    fd;       // master用于和该worker通信的channel，也就是ngx_processes[slot].channels[0]
 } ngx_channel_t;
 
 

@@ -95,6 +95,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
         s = respawn;
 
     } else {
+        // ngx_processes 找一个空闲的元素用于存放新建的worker的相关信息
         for (s = 0; s < ngx_last_process; s++) {
             if (ngx_processes[s].pid == -1) {
                 break;
@@ -109,11 +110,12 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
         }
     }
 
-
+    // 如果是NGX_PROCESS_DETACHED，表示两者不需要进行通信,不需要初始化channel
+    // 目前用到的场景：热升级二进制文件的时候，启动新的master进程
     if (respawn != NGX_PROCESS_DETACHED) {
 
         /* Solaris 9 still has no AF_LOCAL */
-
+        // 套接字对
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, ngx_processes[s].channel) == -1)
         {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
@@ -156,7 +158,8 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
             ngx_close_channel(ngx_processes[s].channel, cycle->log);
             return NGX_INVALID_PID;
         }
-
+        // 如果新的进程执行了exec类的系统调用，也就是新进程运行其他的二进制文件，这个文件描述符就自动关闭
+        // 因为这种情况下，这个进程和master进程没有关系了，两者没有通信的需求
         if (fcntl(ngx_processes[s].channel[0], F_SETFD, FD_CLOEXEC) == -1) {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                           "fcntl(FD_CLOEXEC) failed while spawning \"%s\"",
@@ -172,14 +175,15 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
             ngx_close_channel(ngx_processes[s].channel, cycle->log);
             return NGX_INVALID_PID;
         }
-
+        // ngx_channel 为worker进程用来与master进程通信端
+        // 注意fork后父子进程是共享内存空间的，所以子进程也能访问这个变量
         ngx_channel = ngx_processes[s].channel[1];
 
     } else {
         ngx_processes[s].channel[0] = -1;
         ngx_processes[s].channel[1] = -1;
     }
-
+    // ngx_process_slot 新建的worker进程在nginx_process中的索引
     ngx_process_slot = s;
 
 
@@ -194,6 +198,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
         return NGX_INVALID_PID;
 
     case 0:
+        // 新建的worker子进程的代码分支
         ngx_parent = ngx_pid;
         ngx_pid = ngx_getpid();
         proc(cycle, data);
@@ -202,7 +207,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
     default:
         break;
     }
-
+    // master进程代码分支
     ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "start %s %P", name, pid);
 
     ngx_processes[s].pid = pid;
@@ -211,7 +216,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
     if (respawn >= 0) {
         return pid;
     }
-
+    // 保存新创建的worker进程的信息
     ngx_processes[s].proc = proc;
     ngx_processes[s].data = data;
     ngx_processes[s].name = name;
@@ -314,7 +319,8 @@ ngx_init_signals(ngx_log_t *log)
     return NGX_OK;
 }
 
-
+// 各类信号的处理函数，通常都是设置标志位，具体的处理逻辑在事件循环中统一处理
+// 对于SIGCHLD这类子进程退出的信号
 static void
 ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
 {
@@ -398,7 +404,7 @@ ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
             ngx_sigio = 1;
             break;
 
-        case SIGCHLD:
+        case SIGCHLD: // 子进程退出
             ngx_reap = 1;
             break;
         }
@@ -458,7 +464,7 @@ ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
                       "you should shutdown or terminate "
                       "before either old or new binary's process");
     }
-
+    // 子进程退出，需要调用waitpid函数回收资源
     if (signo == SIGCHLD) {
         ngx_process_get_status();
     }
@@ -480,6 +486,7 @@ ngx_process_get_status(void)
     one = 0;
 
     for ( ;; ) {
+        // 等待任意子进程退出，如果没有子进程退出，则立即返回
         pid = waitpid(-1, &status, WNOHANG);
 
         if (pid == 0) {
@@ -520,7 +527,7 @@ ngx_process_get_status(void)
 
         one = 1;
         process = "unknown process";
-
+        // 记录该子进程退出的状态
         for (i = 0; i < ngx_last_process; i++) {
             if (ngx_processes[i].pid == pid) {
                 ngx_processes[i].status = status;
@@ -529,7 +536,7 @@ ngx_process_get_status(void)
                 break;
             }
         }
-
+        // 是否为信号导致的退出
         if (WTERMSIG(status)) {
 #ifdef WCOREDUMP
             ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0,
@@ -548,6 +555,11 @@ ngx_process_get_status(void)
                           process, pid, WEXITSTATUS(status));
         }
 
+        // WEXITSTATUS(status) 当WIFEXITED返回非零值时，我们可以用这个宏来提取子进程的返回值
+        // 如果子进程调用exit(5)退出，WEXITSTATUS(status)就会返回5；
+        // 如果子进程调用exit(7)，WEXITSTATUS(status)就会返回7。
+        // 请注意，如果进程不是正常退出的，也就是说，WIFEXITED返回0，这个值就毫无意义。
+        // ngnix进程主动退出都是返回2这个错误码
         if (WEXITSTATUS(status) == 2 && ngx_processes[i].respawn) {
             ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0,
                           "%s %P exited with fatal code %d "
@@ -573,7 +585,7 @@ ngx_unlock_mutexes(ngx_pid_t pid)
      * unlock the accept mutex if the abnormally exited process
      * held it
      */
-
+    // 强制解锁
     if (ngx_accept_mutex_ptr) {
         (void) ngx_shmtx_force_unlock(&ngx_accept_mutex, pid);
     }
@@ -582,7 +594,7 @@ ngx_unlock_mutexes(ngx_pid_t pid)
      * unlock shared memory mutexes if held by the abnormally exited
      * process
      */
-
+    // 将持有的共享内存解锁掉
     part = (ngx_list_part_t *) &ngx_cycle->shared_memory.part;
     shm_zone = part->elts;
 

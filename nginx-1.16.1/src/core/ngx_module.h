@@ -231,8 +231,14 @@ struct ngx_module_s {
     ngx_uint_t            version;
     const char           *signature;
 
+    // 存储每个模块相关的context数据
     void                 *ctx;
+    // 用于存储与该模块相关的配置命令解析数据。
+    // 所谓的配置命令，就是对应的nginx配置文件中的语句，如”event“、”include“等
+    // 每个配置语句最终一定有一个相关的ngx_command_t数据与之对应，负责解析这个命令。
     ngx_command_t        *commands;
+    // 用于保存模块的类型
+    // 目前包括NGX_HTTP_MODULE，NGX_CORE_MODULE，NGX_CONF_MOULE，NGX_EVENT_MODULE，NGX_MAIL_MODULE这几种类型
     ngx_uint_t            type;
 
     ngx_int_t           (*init_master)(ngx_log_t *log);

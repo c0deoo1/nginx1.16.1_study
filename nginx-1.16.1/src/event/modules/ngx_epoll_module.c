@@ -618,6 +618,8 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags)
 #endif
 
     ee.events = events | (uint32_t) flags;
+    // 由于指针的最低一位一定是0，所以可以用于存储instance标记位，很巧妙
+    // 否则的话就ee.data.ptr就需要指向额外的结构体，包含有c和ev->instance信息
     ee.data.ptr = (void *) ((uintptr_t) c | ev->instance);
 
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, ev->log, 0,
@@ -798,11 +800,11 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
                    "epoll timer: %M", timer);
 
     events = epoll_wait(ep, event_list, (int) nevents, timer);
-
+    // 因为信号返回的时候err为NGX_EINTR
     err = (events == -1) ? ngx_errno : 0;
 
     if (flags & NGX_UPDATE_TIME || ngx_event_timer_alarm) {
-        ngx_time_update();
+        ngx_time_update(); // 更新时间缓存
     }
 
     if (err) {
@@ -835,12 +837,17 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
     for (i = 0; i < events; i++) {
         c = event_list[i].data.ptr;
-
+        // 这里的instance设计比较巧妙
+        // 假设 epoll_wait一次返回3个事件
+        // 在第1个事件的处理过程中，由于业务的需要，所以关闭了一个连接，而这个连接恰好对应第3个事件。
+        // 而第2个事件又是新建的链接，复用了第一个事件中关闭的链接。
+        // 这样的话，在处理到第3个事件时，这个事件就已经是过期事件了，一旦处理必然出错。
+        // instance存储在指针的最低位，因为一个有效的指针这个位一定位0
         instance = (uintptr_t) c & 1;
         c = (ngx_connection_t *) ((uintptr_t) c & (uintptr_t) ~1);
 
         rev = c->read;
-
+        // 如果connections已经释放了，或者已经被复用了，就是过期事件需要忽略
         if (c->fd == -1 || rev->instance != instance) {
 
             /*

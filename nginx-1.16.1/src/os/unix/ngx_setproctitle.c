@@ -12,6 +12,8 @@
 #if (NGX_SETPROCTITLE_USES_ENV)
 
 /*
+ * linux进程实际是以argv[0]处的值来作为进程的title的，因此若需要修改进程的title只需要修改argv[0]处的值即可
+ * 命令行参数argv和环境变量信息environ是在一块连续的内存中表示的，并且environ紧跟在argv后面
  * To change the process title in Linux and Solaris we have to set argv[1]
  * to NULL and to copy the title to the same place where the argv[0] points to.
  * However, argv[0] may be too small to hold a new title.  Fortunately, Linux
@@ -39,7 +41,7 @@ ngx_init_setproctitle(ngx_log_t *log)
     ngx_uint_t   i;
 
     size = 0;
-
+    // 统计所有环境变量的总占用空间
     for (i = 0; environ[i]; i++) {
         size += ngx_strlen(environ[i]) + 1;
     }

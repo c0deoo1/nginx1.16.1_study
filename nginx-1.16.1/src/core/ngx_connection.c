@@ -130,7 +130,7 @@ ngx_clone_listening(ngx_cycle_t *cycle, ngx_listening_t *ls)
     return NGX_OK;
 }
 
-
+// 对于从父进程继承过来的sockets，直接重新获取下相关的属性，填充到内存结构体中
 ngx_int_t
 ngx_set_inherited_sockets(ngx_cycle_t *cycle)
 {
@@ -1016,7 +1016,7 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle)
     return;
 }
 
-
+// 关闭监听套接字
 void
 ngx_close_listening_sockets(ngx_cycle_t *cycle)
 {
@@ -1037,6 +1037,7 @@ ngx_close_listening_sockets(ngx_cycle_t *cycle)
         c = ls[i].connection;
 
         if (c) {
+            //c->read->active为真，说明该事件已经被注册用于接收IO通知，因此这里需要将该事件删除。
             if (c->read->active) {
                 if (ngx_event_flags & NGX_USE_EPOLL_EVENT) {
 
@@ -1142,7 +1143,7 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
 
     ngx_memzero(rev, sizeof(ngx_event_t));
     ngx_memzero(wev, sizeof(ngx_event_t));
-
+    // 复用connection后会反转这个instance标记位，避免EPOLL处理到过期的事件
     rev->instance = !instance;
     wev->instance = !instance;
 
@@ -1157,14 +1158,14 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
     return c;
 }
 
-
+// 将connection放入到ngx_cycle->free_connections;中
 void
 ngx_free_connection(ngx_connection_t *c)
 {
-    c->data = ngx_cycle->free_connections;
+    c->data = ngx_cycle->free_connections; //空闲链表
     ngx_cycle->free_connections = c;
     ngx_cycle->free_connection_n++;
-
+    // files中如果引用了这个ngx_connection_t，则需要置空，避免野指针
     if (ngx_cycle->files && ngx_cycle->files[c->fd] == c) {
         ngx_cycle->files[c->fd] = NULL;
     }

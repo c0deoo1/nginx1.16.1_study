@@ -37,7 +37,7 @@ struct ngx_pool_cleanup_s {
     ngx_pool_cleanup_t   *next;
 };
 
-
+// 大块内存
 typedef struct ngx_pool_large_s  ngx_pool_large_t;
 
 struct ngx_pool_large_s {
@@ -55,12 +55,12 @@ typedef struct {
 
 
 struct ngx_pool_s {
-    ngx_pool_data_t       d;
-    size_t                max;
-    ngx_pool_t           *current;
+    ngx_pool_data_t       d;       //内存池对应的数据块 实际分配内存的地方(小内存)
+    size_t                max;     //区分大块内存和小块内存的界限
+    ngx_pool_t           *current; //当前可用内存池
     ngx_chain_t          *chain;
-    ngx_pool_large_t     *large;
-    ngx_pool_cleanup_t   *cleanup;
+    ngx_pool_large_t     *large;   //大块内存分配管理链表
+    ngx_pool_cleanup_t   *cleanup; //资源清理管理链表
     ngx_log_t            *log;
 };
 

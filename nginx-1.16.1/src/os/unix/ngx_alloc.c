@@ -13,7 +13,7 @@ ngx_uint_t  ngx_pagesize;
 ngx_uint_t  ngx_pagesize_shift;
 ngx_uint_t  ngx_cacheline_size;
 
-
+// 无需释放内存的场景，直接通过ngx_alloc来分配
 void *
 ngx_alloc(size_t size, ngx_log_t *log)
 {

@@ -321,7 +321,9 @@ ngx_http_init_connection(ngx_connection_t *c)
     c->log_error = NGX_ERROR_INFO;
 
     rev = c->read;
+    // 可读事件设置为ngx_http_wait_request_handler
     rev->handler = ngx_http_wait_request_handler;
+    // 这时候可写的回调设置为空，因为请求都没有接收完毕，可写事件无需处理
     c->write->handler = ngx_http_empty_handler;
 
 #if (NGX_HTTP_V2)
@@ -495,7 +497,7 @@ ngx_http_wait_request_handler(ngx_event_t *rev)
         ngx_http_close_connection(c);
         return;
     }
-
+    // 读取实际的请求行
     rev->handler = ngx_http_process_request_line;
     ngx_http_process_request_line(rev);
 }
@@ -1146,7 +1148,7 @@ ngx_http_process_request_line(ngx_event_t *rev)
             }
 
             c->log->action = "reading client request headers";
-
+            // 处理header
             rev->handler = ngx_http_process_request_headers;
             ngx_http_process_request_headers(rev);
 

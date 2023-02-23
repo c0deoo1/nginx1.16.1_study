@@ -1709,7 +1709,7 @@ ngx_http_add_listening(ngx_conf_t *cf, ngx_http_conf_addr_t *addr)
     }
 
     ls->addr_ntop = 1;
-
+    // 针对HTTP协议，获取到TCP链接后的处理函数
     ls->handler = ngx_http_init_connection;
 
     cscf = addr->default_server;

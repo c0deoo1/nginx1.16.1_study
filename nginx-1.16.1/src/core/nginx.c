@@ -189,7 +189,7 @@ static char        *ngx_signal;
 
 
 static char **ngx_os_environ;
-
+// 平滑重启(配置更新)和平滑升级(二进制更新的机制) https://juejin.cn/post/6927124564703084551
 
 int ngx_cdecl
 main(int argc, char *const *argv)
@@ -248,7 +248,7 @@ main(int argc, char *const *argv)
     ngx_memzero(&init_cycle, sizeof(ngx_cycle_t));
     init_cycle.log = log;
     ngx_cycle = &init_cycle;
-
+    // 初始化内存池
     init_cycle.pool = ngx_create_pool(1024, log);
     if (init_cycle.pool == NULL) {
         return 1;
@@ -277,9 +277,11 @@ main(int argc, char *const *argv)
     /*
      * ngx_slab_sizes_init() requires ngx_pagesize set in ngx_os_init()
      */
-
+    // TODO 了解下slab机制
     ngx_slab_sizes_init();
 
+    // 处理从父进程中继承过来的监听套接字，数据是通过环境变量来传递的
+    // 这个用于实现平滑重启。
     if (ngx_add_inherited_sockets(&init_cycle) != NGX_OK) {
         return 1;
     }
@@ -323,7 +325,7 @@ main(int argc, char *const *argv)
 
         return 0;
     }
-
+    // 用于发送信号的nginx进程
     if (ngx_signal) {
         return ngx_signal_process(cycle, ngx_signal);
     }
@@ -339,12 +341,13 @@ main(int argc, char *const *argv)
     }
 
 #if !(NGX_WIN32)
-
+    // 监听信号
     if (ngx_init_signals(cycle->log) != NGX_OK) {
         return 1;
     }
 
     if (!ngx_inherited && ccf->daemon) {
+        // 设置为后台运行
         if (ngx_daemon(cycle->log) != NGX_OK) {
             return 1;
         }
@@ -635,7 +638,27 @@ ngx_cleanup_environment(void *data)
 
     ngx_free(env);
 }
-
+/**
+ * 重启意味着新旧接替，在交接任务的过程中势必会存在新旧server并存的情形
+ * 因此，重启的流程大致为：
+ * 1、启动新的server
+ * 2、新旧server并存，两者共同处理请求，提供服务
+ * 3、旧的server处理完所有的请求之后优雅退出
+ * 重新开启server实例是行不通的，原因在于新旧server使用了同一个端口80，在未开始socket reuseport选项复用端口时，bind系统调用会出错。
+ *
+ * nginx的重启命令为：
+ * 第一步：kill -USR2 `cat /var/run/nginx.pid`
+ * 第二步：kill -QUIT `cat /var/run/nginx.pid.oldbin`
+ * 第一步是发送信号USR2给旧的master进程，进程的pid存放在/var/run/nginx.pid文件中，其中nginx.pid文件路径由nginx.conf配置。
+ * 第二步是发送信号QUIT给旧的master进程，进程的pid存放在/var/run/nginx.pid.oldbin文件中，随后旧的master进程退出。
+ *
+ *
+ * 1、将旧的master进程监听的所有fd，拷贝至新master进程的env环境变量NGINX_VAR。
+ * 2、rename重命名pid文件
+ * 3、ngx_execute函数fork子进程，execve执行命令行启动新的server。
+ * 4、在server启动流程之中，涉及到环境变量NGINX_VAR的解析，ngx_connection.c/ngx_add_inherited_sockets。
+ * 5、ngx_add_inherited_sockets获取fd存入数组fd对应的socket设为ngx_inherited，保存这些socket的信息。也就是说，新的server压根就没重新bind端口listen，这些fd状态和值都是新的master进程fork时带过来的,新的master进程监听处理继承来的文件描述符即可
+ * **/
 
 ngx_pid_t
 ngx_exec_new_binary(ngx_cycle_t *cycle, char *const *argv)

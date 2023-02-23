@@ -75,10 +75,15 @@
 
 
 struct ngx_command_s {
+    // 配置文件里对应的配置项名称
     ngx_str_t             name;
+    // 配置项类型，这里会存储如该配置项应该出现在什么位置（http块、server块、location块等
+    // 以及配置项参数数量，以便于解析过程中进行合法性的判断
     ngx_uint_t            type;
     char               *(*set)(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+    // 该配置在子模块配置项中的索引。
     ngx_uint_t            conf;
+    // 该配置命令所要修改的配置项在该模块配置结构体中的偏移量。
     ngx_uint_t            offset;
     void                 *post;
 };

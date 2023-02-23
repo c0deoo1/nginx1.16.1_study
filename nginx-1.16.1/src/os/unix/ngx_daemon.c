@@ -8,7 +8,13 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-
+/**
+ * 调用fork()产生子进程，同时父进程退出
+ * 调用setsid()产生一个新的会话
+ * 调用umask()将文件模式创建屏蔽字设置为一个已知值
+ * 将标准输入、标准输出attach到/dev/null中
+ * 关闭打开的/dev/null文件句柄fd
+ * **/
 ngx_int_t
 ngx_daemon(ngx_log_t *log)
 {
@@ -22,7 +28,7 @@ ngx_daemon(ngx_log_t *log)
     case 0:
         break;
 
-    default:
+    default: // 父进程直接退出
         exit(0);
     }
 
